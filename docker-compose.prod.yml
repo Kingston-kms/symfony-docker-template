@@ -1,0 +1,11 @@
+services:
+  composer:
+    command: composer.phar install
+
+  database:
+    ports:
+      - "127.0.0.1:13306:3306"
+
+  nginx:
+    ports:
+      - "127.0.0.1:18080:80"

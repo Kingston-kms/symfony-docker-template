@@ -1,0 +1,77 @@
+services:
+  composer:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile.composer
+    networks:
+      - project-network
+    volumes:
+      - vendor:/project/vendor:rw
+      - var:/project/var:rw
+    command: ['composer.phar', 'install']
+
+  php-cli:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile.php
+    container_name: ${COMPOSE_PROJECT_NAME}-php-cli
+    networks:
+      - project-network
+    volumes:
+      - vendor:/project/vendor:ro
+      - var:/project/var:rw
+    depends_on:
+      - composer
+      - database
+
+  php-fpm:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile.fpm
+    container_name: ${COMPOSE_PROJECT_NAME}-php-fpm
+    networks:
+      - project-network
+    volumes:
+      - vendor:/project/vendor:ro
+      - var:/project/var:rw
+    depends_on:
+      - composer
+      - database
+
+  nginx:
+    image: nginx:latest
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    networks:
+      - project-network
+    depends_on:
+      - php-fpm
+
+  database:
+    image: mariadb:lts
+    container_name: ${COMPOSE_PROJECT_NAME}-database
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--su=mysql", "--connect", "--innodb_initialized" ]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database:/var/lib/mysql:rw
+    networks:
+      - project-network
+
+volumes:
+  database:
+    name: ${COMPOSE_PROJECT_NAME}-${APP_ENV}-database
+  vendor:
+    name: ${COMPOSE_PROJECT_NAME}-${APP_ENV}-vendor
+  var:
+    name: ${COMPOSE_PROJECT_NAME}-${APP_ENV}-var
+
+networks:
+  project-network:
+    name: ${COMPOSE_PROJECT_NAME}-${APP_ENV}-network

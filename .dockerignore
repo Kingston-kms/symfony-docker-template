@@ -1,0 +1,10 @@
+.git
+.gitignore
+Makefile
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.prod.yml
+.docker/
+vendor/
+var/
+.idea

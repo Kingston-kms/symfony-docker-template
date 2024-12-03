@@ -1,0 +1,24 @@
+doctrine:
+    dbal:
+        dbname: '%env(resolve:MARIADB_DATABASE)%'
+        host: 'database'
+        port: 3306
+        user: '%env(resolve:MARIADB_USER)%'
+        password: '%env(resolve:MARIADB_PASSWORD)%'
+        driver: pdo_mysql
+        charset: utf8mb4
+
+when@test:
+    doctrine:
+        dbal:
+            # "TEST_TOKEN" is typically set by ParaTest
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
+when@prod:
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system

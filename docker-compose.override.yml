@@ -1,0 +1,8 @@
+services:
+  database:
+    ports:
+      - "3306"
+
+  nginx:
+    ports:
+      - "80"
